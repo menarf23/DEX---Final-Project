@@ -23,7 +23,7 @@ contract Dex is Wallet {
 
     uint public nextOrderId = 0;
 
-    //this double mapping is pointing from bytes32 "ticker" to uint of "tradingSide"(BUY or SELL, = 0 or 1) to an array of Order structs
+    // this double mapping is pointing from bytes32 "ticker" to uint of "tradingSide"(BUY or SELL, = 0 or 1) which is pointing to an array of Order structs
     // this way we basically get two orderbooks(buy and sell) for each assett(coin represented by ticker)
     mapping(bytes32 => mapping(uint => Order[])) public orderBook;
 
@@ -40,7 +40,7 @@ contract Dex is Wallet {
             require(balances[msg.sender][ticker] >= amount);
         }
 
-        // orders array is of storage memory type because it makes a reference to an array that is in the storage
+        // "orders" array is of storage memory type because it makes a reference to an array that is in the storage
         Order[] storage orders = orderBook[ticker][uint(tradingSide)]; // this is a list of orders for a specific ticker's buy or sell side
         // [Order1, Order2...]
         orders.push(
@@ -50,45 +50,7 @@ contract Dex is Wallet {
         // Bubble sort
         // This can be done in multiple ways using while or for loop
 
-        // uint i = 0;
-
-        // if(orders.length > 0){
-        //     i = orders.length -1;
-        // }
-
-        // else{
-        //     i = 0;
-        // }
-
-        // this line below is same as the small if/else loop written above
-        // uint i = orders.length > 0 ? orders.length - 1 : 0; 
-
-        // if(tradingSide == Side.BUY){
-        //     while(i > 0){
-        //         if(orders[i-1].price > orders[i].price){
-        //             break;
-        //         }
-        //         Order memory orderToMove = orders[i-1];
-        //         orders[i-1] = orders[i];
-        //         orders[i] = orderToMove;
-        //         i--;
-        //     }
-
-        // }
-
-        // else if (tradingSide == Side.SELL){
-        //     while(i > 0){
-        //         if(orders[i-1].price < orders[i].price){
-        //             break;
-        //         }
-        //         Order memory orderToMove = orders[i-1];
-        //         orders[i-1] = orders[i];
-        //         orders[i] = orderToMove;
-        //         i--;
-        //     }
-            
-        // }
-
+        
         if(tradingSide == Side.BUY){
             
             Order memory temp_Buy_Order;
@@ -143,8 +105,9 @@ contract Dex is Wallet {
 
         uint totalFilled = 0;
 
+        // How much of the Market Order can we fill from the existing Limit Orders i.e. orders[i]
         for (uint256 i = 0; i < orders.length && totalFilled < amount; i++) {
-            // How much of the Market Order can we fill from the existing Limit Orders i.e. orders[i]
+            
             uint leftToFill = amount - totalFilled; //Market Order amount remaining to be filled
             uint availableToFill = orders[i].amount - orders[i].filled; //Limit Order amount available for filling the Market Order
             uint filledInThisRun = 0; //amount filled in the single loop iteration
@@ -188,7 +151,6 @@ contract Dex is Wallet {
         }
 
         // Loop through the orderbook and remove 100% filled orders
-
         while(orders.length > 0 && orders[0].filled == orders[0].amount){
             // Remove the top element in the orders list by overwriting every element with the next element in the order list and then pop the last element out
             // This is not the best solution in terms of GAS consumption
